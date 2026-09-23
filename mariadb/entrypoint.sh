@@ -15,6 +15,15 @@ set_ownership(){
     mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
 }
 
+init_db(){
+    mariadb -u root <<EOF
+CREATE DATABASE IF NOT EXISTS wordpress;
+CREATE USER IF NOT EXISTS 'wpuser'@'%' IDENTIFIED BY 'wppassword';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wpuser'@'%';
+FLUSH PRIVILEGES;
+EOF
+}
+
 db_daemon_check(){
     mariadbd --user=mysql &
     MARIADB_PID=$!
@@ -29,11 +38,12 @@ db_daemon_check(){
 	
         if ! kill -0 $MARIADB_PID 2>/dev/null; then
             echo "mariadbd process died unexpectedly"
-                cleanup
+            cleanup
         fi
 
         if mariadb -u root -e "SELECT 1;" 2>/dev/null; then
             echo "MariaDB waked up."
+            init_db
             break
         fi
         sleep 1
@@ -48,6 +58,8 @@ main(){
     echo "Hello, this is mariadb entrypoint"
     set_ownership
     db_daemon_check
+    init_db
+
     echo "MariaDB test daemon stopped. Restarting daemon..."
     exec mariadbd --user=mysql
 }

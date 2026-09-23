@@ -16,7 +16,6 @@ services:
       context: ./wordpress/
       dockerfile: Dockerfile
     container_name: wordpress_container
-    command: sleep infinity
     networks:
       - wp_net
 
