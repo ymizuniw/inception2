@@ -1,0 +1,34 @@
+services:
+  mariadb:
+    build:
+      context: ./mariadb/
+      dockerfile: Dockerfile
+    container_name: mariadb_container
+    command: sleep infinity
+    networks:
+      - wp_net
+
+  wordpress:
+    build:
+      context: ./
+      dockerfile: wordpress.Dockerfile
+    container_name: wordpress_container
+    command: sleep infinity
+    networks:
+      - wp_net
+
+  nginx:
+    build:
+      context: ./nginx/
+      dockerfile: Dockerfile
+    container_name: nginx_container
+    command: sleep infinity
+    ports:
+      - "8080:8080"
+    networks:
+      - wp_net
+
+networks:
+  wp_net:
+    name: wp_net
+
