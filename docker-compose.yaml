@@ -4,14 +4,17 @@ services:
       context: ./mariadb/
       dockerfile: Dockerfile
     container_name: mariadb_container
-    command: sleep infinity
+    # ports:
+    #   - "3306:3306" # when to investigate from host
     networks:
       - wp_net
+    volumes:
+      - db-data:/var/lib/mysql/
 
   wordpress:
     build:
-      context: ./
-      dockerfile: wordpress.Dockerfile
+      context: ./wordpress/
+      dockerfile: Dockerfile
     container_name: wordpress_container
     command: sleep infinity
     networks:
@@ -22,9 +25,10 @@ services:
       context: ./nginx/
       dockerfile: Dockerfile
     container_name: nginx_container
-    command: sleep infinity
     ports:
       - "8080:8080"
+    volumes:
+      - html:/var/www/html
     networks:
       - wp_net
 
@@ -32,3 +36,16 @@ networks:
   wp_net:
     name: wp_net
 
+volumes:
+  db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/ymizuniw/Desktop/Inception2/db-data # must be the absolute host path and already exist
+  html:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /Users/ymizuniw/Desktop/Inception2/html # must be the absolute host path and already exist
