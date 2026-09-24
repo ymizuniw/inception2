@@ -7,7 +7,7 @@ wait_for_db(){
             echo "db timed out"
             exit 1
         fi
-        if nc -z mariadb 3306; then
+        if nc -z mariadb_container 3306; then # should be replaced with env var of container name?
             echo "mariadb is working"
             break
         fi
@@ -20,13 +20,20 @@ wait_for_db(){
 # define( 'DB_PASSWORD', 'password_here' );
 # define( 'DB_HOST', 'localhost' );
 
+WP_CONFIG_SAMPLE="/var/www/html/wp-config-sample.php"
 WP_CONFIG="/var/www/html/wp-config.php"
 
+DB_NAME="wordpress"
+DB_USER="wpuser"
+DB_PASSWORD="wppassword"
+DB_HOST="mariadb_container" #localhost is default
+
 setup_wp_config(){
+    cp ${WP_CONFIG_SAMPLE} ${WP_CONFIG}
     sed -i "s/database_name_here/wordpress/" $WP_CONFIG
     sed -i "s/username_here/wpuser/"         $WP_CONFIG
     sed -i "s/password_here/wppassword/"     $WP_CONFIG
-    sed -i "s/localhost/db/"                 $WP_CONFIG
+    sed -i "s/localhost/mariadb_container/"  $WP_CONFIG
 }
 
 main(){

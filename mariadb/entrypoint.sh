@@ -9,9 +9,9 @@ cleanup(){
 
 set_ownership(){
     if [ ! -d "/var/lib/mysql/mysql" ]; then
-        mariadb-install-db --user=mysql --datadir=/var/lib/mysql \
-        && chown -R mysql /var/lib/mysql/data
+        mariadb-install-db --user=mysql --datadir=/var/lib/mysql
     fi
+    chown -R mysql:mysql /var/lib/mysql/mysql
     mkdir -p /run/mysqld && chown mysql:mysql /run/mysqld
 }
 

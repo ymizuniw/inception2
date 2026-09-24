@@ -1,6 +1,6 @@
 FROM alpine:3.23
 
-# https://wiki.alpinelinux.org/wiki/WordPress
+# # https://wiki.alpinelinux.org/wiki/WordPress
 RUN apk add --no-cache \
         bash \
         wget \
@@ -22,10 +22,13 @@ RUN apk add --no-cache \
     && rm latest.tar.gz \
     && chown -R nobody:nobody /var/www/html \
     && sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /etc/php84/php-fpm.d/www.conf
-    # vi /etc/php84/php-fpm.d/www.conf
-    # re-write listen part.
-    # in nginx.conf, fastcgi_pass should listen on the same port.
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN  chmod +x /usr/local/bin/entrypoint.sh
+#     # vi /etc/php84/php-fpm.d/www.conf
+#     # re-write listen part.
+#     # in nginx.conf, fastcgi_pass should listen on the same port.
 
 EXPOSE 9000
 
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

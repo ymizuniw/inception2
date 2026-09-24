@@ -1,5 +1,6 @@
 services:
   mariadb:
+    pull_policy: never
     build:
       context: ./mariadb/
       dockerfile: Dockerfile
@@ -12,14 +13,18 @@ services:
       - db-data:/var/lib/mysql/
 
   wordpress:
+    pull_policy: never
     build:
       context: ./wordpress/
       dockerfile: Dockerfile
     container_name: wordpress_container
     networks:
       - wp_net
+    depends_on:
+      - mariadb
 
   nginx:
+    pull_policy: never
     build:
       context: ./nginx/
       dockerfile: Dockerfile
@@ -30,6 +35,8 @@ services:
       - html:/var/www/html
     networks:
       - wp_net
+    depends_on:
+      - wordpress
 
 networks:
   wp_net:
