@@ -5,8 +5,8 @@ services:
       context: ./mariadb/
       dockerfile: Dockerfile
     container_name: mariadb_container
-    # ports:
-    #   - "3306:3306" # when to investigate from host
+    ports:
+      - "3306:3306" # when to investigate from host
     networks:
       - wp_net
     volumes:
@@ -18,6 +18,8 @@ services:
       context: ./wordpress/
       dockerfile: Dockerfile
     container_name: wordpress_container
+    volumes:
+      - html:/var/www/html
     networks:
       - wp_net
     depends_on:
