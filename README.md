@@ -166,6 +166,7 @@ over the internal `wp_net` network; there is no exposed database port.
 
 ### References
 
+- [Docker Engine install (Debian)](https://docs.docker.com/engine/install/debian/)
 - [Docker Compose file reference](https://docs.docker.com/reference/compose-file/)
 - [Docker Compose secrets](https://docs.docker.com/compose/how-tos/use-secrets/)
 - [Alpine Linux — WordPress on Alpine](https://wiki.alpinelinux.org/wiki/WordPress)

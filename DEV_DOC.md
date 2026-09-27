@@ -6,7 +6,33 @@ use the running site.
 
 ## 1. Prerequisites
 
-- Docker Engine + Docker Compose v2 (`docker compose version`).
+- **Docker Engine + Docker Compose v2** (`docker compose version`). Not
+  preinstalled on a stock Debian/Ubuntu VM — install it from Docker's own
+  apt repository, not the distro's `docker.io` package
+  ([official docs](https://docs.docker.com/engine/install/debian/)):
+  ```sh
+  # Docker's GPG key + apt repo
+  sudo apt update
+  sudo apt install ca-certificates curl gnupg
+  sudo install -m 0755 -d /etc/apt/keyrings
+  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
+  sudo chmod a+r /etc/apt/keyrings/docker.asc
+
+  sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
+  Types: deb
+  URIs: https://download.docker.com/linux/debian
+  Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
+  Components: stable
+  Architectures: $(dpkg --print-architecture)
+  Signed-By: /etc/apt/keyrings/docker.asc
+  EOF
+  sudo apt update
+
+  # Install + verify
+  sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+  sudo systemctl enable --now docker
+  sudo docker run hello-world
+  ```
 - `openssl` (to generate the TLS certificate via `gen_cert.sh`).
 - A domain resolving to `127.0.0.1` on the host, per the 42 subject:
   ```sh
