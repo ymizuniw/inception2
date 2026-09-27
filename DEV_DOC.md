@@ -67,6 +67,14 @@ use the running site.
   WP_LOCALE=
   ```
 
+- secrets/
+  ```
+  # at inception2/
+  mkdir secrets/
+  chmod +x gen_cert.sh
+  ./gen_cert.sh
+  ```
+
 ## 2. Config files, per service
 
 ### `srcs/requirements/mariadb/conf/custom.cnf`
