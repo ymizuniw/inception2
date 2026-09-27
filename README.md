@@ -175,6 +175,8 @@ over the internal `wp_net` network; there is no exposed database port.
   and [FastCGI with PHP-FPM](https://www.nginx.com/resources/wiki/start/topics/examples/phpfcgi/)
 - [WP-CLI command reference](https://developer.wordpress.org/cli/commands/)
 - [OpenSSL — self-signed certificates](https://docs.openssl.org/master/man1/openssl-req/)
+- [DigiCert — What Is an SSL Certificate?](https://www.digicert.com/jp/what-is-an-ssl-certificate)
+- [OpenSSLで証明書を作ってみる (1)](https://weblabo.oscasierra.net/openssl-gencert-1/)
 
 ### AI usage
 

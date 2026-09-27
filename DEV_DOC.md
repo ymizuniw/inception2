@@ -49,6 +49,33 @@ The whole nginx config: one `server` block, TLS-only.
 - `location ~ \.php$` — proxies to `wordpress_container:9000` over
   FastCGI (`upstream wp_fastcgi_passes`).
 
+### `gen_cert.sh` (generates nginx's TLS material)
+
+Run on the host (the VM), not inside any container — it just needs
+`openssl`, and its output has to exist in `secrets/` before `nginx` is
+even built.
+
+```sh
+openssl genrsa -out server.key 2048
+openssl req -new -key server.key -out server.csr
+openssl x509 -req -days 3650 -signkey server.key -in server.csr -out server.crt
+```
+
+Three steps, each consuming the previous one's output:
+
+1. `genrsa` — generates a 2048-bit RSA private key, `server.key`.
+2. `req -new` — creates a Certificate Signing Request (`server.csr`) from
+   that key, prompting for the certificate's subject fields (the `CN`
+   should match `DOMAIN_NAME`).
+3. `x509 -req -signkey ... -in server.csr` — instead of sending the CSR to
+   a real CA, self-signs it with the same private key, producing
+   `server.crt` (valid for 3650 days).
+
+The result — `server.key`/`server.crt` (plus the intermediate `server.csr`,
+kept only for reference) — lands in `secrets/` and is mounted into
+`nginx_container` as the `nginx_ssl_key`/`nginx_ssl_crt`/`nginx_ssl_csr`
+secrets (see `nginx.conf`'s `ssl_certificate`/`ssl_certificate_key`).
+
 ### `srcs/requirements/wordpress/conf/.user.ini`
 
 ```ini
