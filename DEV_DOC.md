@@ -45,7 +45,27 @@ use the running site.
   first `up` — the named volumes below are bind-backed to a fixed host
   path, so unlike a plain bind mount Docker won't create it for you.
   `make up`/`make re` already do this (`mkdir -p`), so it's automatic as
-  long as you go through the Makefile.
+  long as you go through the Makefile.'
+
+- here is the template of `.env`
+  ```
+  DOMAIN_NAME=
+  DATA_PATH=
+  SECRET_PATH=
+  DATABASE_NAME=
+  DATABASE_USER=
+  DATABASE_HOST=
+
+  WP_FILE_PATH=
+  WP_DATABASE_PATH=
+
+  WP_SITE_TITLE=
+  WP_ADMIN_USER=
+  WP_ADMIN_EMAIL=
+  WP_USER=
+  WP_USER_EMAIL=
+  WP_LOCALE=
+  ```
 
 ## 2. Config files, per service
 
