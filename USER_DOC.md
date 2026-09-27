@@ -36,9 +36,11 @@ moment to be ready the very first time.
 - **The website:** `https://<the project's domain name>/`
   (for example `https://ymizuniw.42.fr/`). Ask whoever set up the project
   for the exact domain if you don't know it.
-- **The admin panel:** add `/wp-admin` to that address, e.g.
-  `https://ymizuniw.42.fr/wp-admin`. Log in there with the admin username
-  and password (see below).
+- **The login page:** add `/wp-login.php` to that address, e.g.
+  `https://ymizuniw.42.fr/wp-login.php` (or go to `/wp-admin` — it
+  redirects there automatically if you're not logged in). There are two
+  accounts: the administrator, and a second, regular (author) account —
+  see below for both accounts' credentials.
 
 > The site uses a self-signed security certificate, so your browser will
 > show a warning ("connection not private" or similar) the first time.
@@ -55,6 +57,8 @@ documentation on purpose. They live in two places:
 - **Admin password:** in the project's secrets folder
   (`secrets/wp_admin_password.txt`) — a plain text file with just the
   password in it.
+- **Second account's username:** `srcs/.env`, look for `WP_USER`.
+- **Second account's password:** `secrets/wp_user_password.txt`.
 
 If you need to change the admin password *after* the site has already been
 set up, editing that file won't be enough (the site keeps its own copy).

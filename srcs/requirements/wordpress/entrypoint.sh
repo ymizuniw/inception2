@@ -7,6 +7,9 @@ read_env(){
     : "${DATABASE_USER:?DATABASE_USER is not set}"
     : "${DATABASE_HOST:?DATABASE_HOST is not set}"
     : "${DOMAIN_NAME:?DOMAIN_NAME is not set}"
+    : "${WP_ADMIN_USER:?WP_ADMIN_USER is not set}"
+    : "${WP_USER:?WP_USER is not set}"
+    : "${WP_USER_EMAIL:?WP_USER_EMAIL is not set}"
     WP_URL="https://${DOMAIN_NAME}"
 }
 
@@ -61,6 +64,11 @@ install_wordpress(){
     if ! wp core install --path="${WP_FILE_PATH}" --url="${WP_URL}" --title="${WP_SITE_TITLE}" --admin_user="${WP_ADMIN_USER}" --admin_password="$(cat /run/secrets/wp_admin_password)" --locale="${WP_LOCALE}" --admin_email="${WP_ADMIN_EMAIL}" --skip-email="${WP_ADMIN_EMAIL}" >/dev/null; then
         # --debug
         echo "[FAIL] wp core install"
+        exit 1
+    fi
+    echo "wp user create (second, non-admin account)"
+    if ! wp user create "${WP_USER}" "${WP_USER_EMAIL}" --path="${WP_FILE_PATH}" --role=author --user_pass="$(cat /run/secrets/wp_user_password)" >/dev/null; then
+        echo "[FAIL] wp user create"
         exit 1
     fi
     echo "wp plugin update"

@@ -108,8 +108,9 @@ over the internal `wp_net` network; there is no exposed database port.
 ### Setup
 
 1. **Secrets.** Create `secrets/` at the repository root with one file per
-   secret (root DB password, WordPress DB user password, WP admin password,
-   and the TLS key/cert/csr). `gen_cert.sh` generates the certificate:
+   secret (root DB password, WordPress DB user password, WP admin
+   password, WP second-user password, and the TLS key/cert/csr).
+   `gen_cert.sh` generates the certificate:
    ```sh
    ./gen_cert.sh
    ```

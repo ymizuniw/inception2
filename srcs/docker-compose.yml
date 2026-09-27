@@ -25,9 +25,10 @@ services:
       dockerfile: Dockerfile
     container_name: wordpress_container
     env_file: .env
-    secrets: 
+    secrets:
       - database_user_password
       - wp_admin_password
+      - wp_user_password
     volumes:
       - html:${WP_FILE_PATH}
     networks:
@@ -82,6 +83,8 @@ secrets:
     file: ${SECRET_PATH}/database_user_password.txt
   wp_admin_password:
     file: ${SECRET_PATH}/wp_admin_password.txt
+  wp_user_password:
+    file: ${SECRET_PATH}/wp_user_password.txt
   nginx_ssl_key:
     file: ${SECRET_PATH}/server.key
   nginx_ssl_crt:
