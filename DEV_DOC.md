@@ -33,6 +33,14 @@ use the running site.
   sudo systemctl enable --now docker
   sudo docker run hello-world
   ```
+- setting docker without sudo
+  ```
+  sudo groupadd docker
+  sudo usermod -aG docker $USER
+  newgrp docker
+  docker run hello-world
+  ```
+
 - `openssl` (to generate the TLS certificate via `gen_cert.sh`).
 - A domain resolving to `127.0.0.1` on the host, per the 42 subject:
   ```sh
