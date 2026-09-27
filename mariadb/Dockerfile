@@ -5,7 +5,7 @@ RUN apk add --no-cache \
 	mariadb \
 	mariadb-client
 
-COPY conf/custom.cnf /etc/mysql/mariadb.conf.d/99-custom.cnf
+COPY conf/custom.cnf /etc/my.cnf.d/99-custom.cnf
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

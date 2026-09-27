@@ -1,2 +1,6 @@
 db-data/
 html/
+.env
+secrets/
+log
+review.md

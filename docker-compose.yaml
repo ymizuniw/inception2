@@ -1,25 +1,33 @@
 services:
   mariadb:
     pull_policy: never
+    restart: unless-stopped
     build:
       context: ./mariadb/
       dockerfile: Dockerfile
     container_name: mariadb_container
-    ports:
-      - "3306:3306" # when to investigate from host
+    env_file: .env
+    secrets:
+      - database_root_password
+      - database_user_password
     networks:
       - wp_net
     volumes:
-      - db-data:/var/lib/mysql/
+      - db-data:${WP_DATABASE_PATH}
 
   wordpress:
     pull_policy: never
+    restart: unless-stopped
     build:
       context: ./wordpress/
       dockerfile: Dockerfile
     container_name: wordpress_container
+    env_file: .env
+    secrets: 
+      - database_user_password
+      - wp_admin_password
     volumes:
-      - html:/var/www/html
+      - html:${WP_FILE_PATH}
     networks:
       - wp_net
     depends_on:
@@ -27,6 +35,7 @@ services:
 
   nginx:
     pull_policy: never
+    restart: unless-stopped
     build:
       context: ./nginx/
       dockerfile: Dockerfile
@@ -34,7 +43,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - html:/var/www/html
+      - html:${WP_FILE_PATH}
     networks:
       - wp_net
     depends_on:
@@ -50,10 +59,18 @@ volumes:
     driver_opts:
       type: none
       o: bind
-      device: /Users/ymizuniw/Desktop/Inception2/db-data # must be the absolute host path and already exist
+      device: ${DATA_PATH}/db-data # must be the absolute host path and already exist
   html:
     driver: local
     driver_opts:
       type: none
       o: bind
-      device: /Users/ymizuniw/Desktop/Inception2/html # must be the absolute host path and already exist
+      device: ${DATA_PATH}/html # must be the absolute host path and already exist
+
+secrets:
+  database_root_password:
+    file: secrets/database_root_password.txt
+  database_user_password:
+    file: secrets/database_user_password.txt
+  wp_admin_password:
+    file: secrets/wp_admin_password.txt
