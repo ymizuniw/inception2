@@ -1,13 +1,22 @@
 NAME=Inception
+COMPOSE=docker compose -p inception -f srcs/docker-compose.yml
+
+include srcs/.env
+export
 
 up:
-	docker compose up
+	mkdir -p $(DATA_PATH)/db-data $(DATA_PATH)/html
+	$(COMPOSE) up -d
 
 down:
-	docker compose down
+	$(COMPOSE) down
 
 re:
-	docker compose build --no-cache
-	docker compose up
+	mkdir -p $(DATA_PATH)/db-data $(DATA_PATH)/html
+	$(COMPOSE) build --no-cache
+	$(COMPOSE) up -d
 
-.PHONY up down re
+logs:
+	$(COMPOSE) logs -f
+
+.PHONY: up down re logs

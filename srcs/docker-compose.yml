@@ -1,9 +1,10 @@
 services:
   mariadb:
+    image: mariadb
     pull_policy: never
     restart: unless-stopped
     build:
-      context: ./mariadb/
+      context: ./requirements/mariadb/
       dockerfile: Dockerfile
     container_name: mariadb_container
     env_file: .env
@@ -16,10 +17,11 @@ services:
       - db-data:${WP_DATABASE_PATH}
 
   wordpress:
+    image: wordpress
     pull_policy: never
     restart: unless-stopped
     build:
-      context: ./wordpress/
+      context: ./requirements/wordpress/
       dockerfile: Dockerfile
     container_name: wordpress_container
     env_file: .env
@@ -34,14 +36,20 @@ services:
       - mariadb
 
   nginx:
+    image: nginx
     pull_policy: never
     restart: unless-stopped
     build:
-      context: ./nginx/
+      context: ./requirements/nginx/
       dockerfile: Dockerfile
     container_name: nginx_container
+    env_file: .env
+    secrets:
+      - nginx_ssl_crt
+      - nginx_ssl_key
+      - nginx_ssl_csr
     ports:
-      - "8080:8080"
+      - "443:443"
     volumes:
       - html:${WP_FILE_PATH}
     networks:
@@ -69,8 +77,14 @@ volumes:
 
 secrets:
   database_root_password:
-    file: secrets/database_root_password.txt
+    file: ${SECRET_PATH}/database_root_password.txt
   database_user_password:
-    file: secrets/database_user_password.txt
+    file: ${SECRET_PATH}/database_user_password.txt
   wp_admin_password:
-    file: secrets/wp_admin_password.txt
+    file: ${SECRET_PATH}/wp_admin_password.txt
+  nginx_ssl_key:
+    file: ${SECRET_PATH}/server.key
+  nginx_ssl_crt:
+    file: ${SECRET_PATH}/server.crt
+  nginx_ssl_csr:
+    file: ${SECRET_PATH}/server.csr

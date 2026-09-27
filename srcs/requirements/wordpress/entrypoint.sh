@@ -6,6 +6,8 @@ read_env(){
     : "${DATABASE_NAME:?DATABASE_NAME is not set}"
     : "${DATABASE_USER:?DATABASE_USER is not set}"
     : "${DATABASE_HOST:?DATABASE_HOST is not set}"
+    : "${DOMAIN_NAME:?DOMAIN_NAME is not set}"
+    WP_URL="https://${DOMAIN_NAME}"
 }
 
 wait_for_db(){
@@ -56,7 +58,7 @@ install_wordpress(){
         exit 1
     fi
     echo "wp core install"
-    if ! wp core install --path="${WP_FILE_PATH}" --url="${DOMAIN_NAME}" --title="${WP_SITE_TITLE}" --admin_user="${WP_ADMIN_USER}" --admin_password="$(cat /run/secrets/wp_admin_password)" --locale="${WP_LOCALE}" --admin_email="${WP_ADMIN_EMAIL}" --skip-email="${WP_ADMIN_EMAIL}" >/dev/null; then
+    if ! wp core install --path="${WP_FILE_PATH}" --url="${WP_URL}" --title="${WP_SITE_TITLE}" --admin_user="${WP_ADMIN_USER}" --admin_password="$(cat /run/secrets/wp_admin_password)" --locale="${WP_LOCALE}" --admin_email="${WP_ADMIN_EMAIL}" --skip-email="${WP_ADMIN_EMAIL}" >/dev/null; then
         # --debug
         echo "[FAIL] wp core install"
         exit 1
