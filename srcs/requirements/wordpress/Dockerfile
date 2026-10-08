@@ -16,11 +16,12 @@ RUN apk add --no-cache \
         php84-zip \
 		php84-exif \
 		php84-gd \
-    # && sed -i 's/memory_limit = '    
     && sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /etc/php84/php-fpm.d/www.conf
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY conf/.user.ini /etc/php84/conf.d/.user.ini
+COPY conf/99-custom.ini /etc/php84/conf.d/99-custom.ini
+COPY conf/zz-custom.conf /etc/php84/php-fpm.d/zz-custom.conf
+
 RUN  chmod +x /usr/local/bin/entrypoint.sh
 #     # vi /etc/php84/php-fpm.d/www.conf
 #     # re-write listen part.
@@ -29,4 +30,3 @@ RUN  chmod +x /usr/local/bin/entrypoint.sh
 EXPOSE 9000
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-# ENTRYPOINT ["sh", "-c", "echo 'test'; exec tail -f /dev/null"]

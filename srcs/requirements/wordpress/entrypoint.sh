@@ -23,7 +23,7 @@ wait_for_db(){
             echo "[SUCCESS] mariadb is working"
             break
         else
-            echo "[FAIL] mariadb -h ${DATABASE_HOST}  -u  ${DATABASE_USER}  -p${DATABASE_PASSWORD} ${DATABASE_NAME}  -e \"SELECT 1;\""
+            echo "[FAIL] mariadb -h ${DATABASE_HOST}  -u  ${DATABASE_USER}  ${DATABASE_NAME}  -e \"SELECT 1;\""
         fi
         sleep 1
     done
