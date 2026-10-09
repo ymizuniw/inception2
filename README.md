@@ -10,7 +10,7 @@ service, orchestrated by a single Docker Compose file and driven by one
 `Makefile`.
 
 The stack has three containers, one per service, each built from its own
-Dockerfile (no pre-built service images, no `latest` tags):
+Dockerfile:
 
 | Container  | Role                                              |
 |------------|---------------------------------------------------|
@@ -24,18 +24,13 @@ hardcode credentials: every password is injected as a Docker secret (a file
 under `secrets/`, never committed to git) or through an `.env` file that is
 also excluded from version control.
 
-Goals this project is meant to demonstrate: multi-container orchestration
-with Compose, one process per container, TLS-only access, secrets handled
-outside the image and outside git, and reproducible startup through
-`docker-compose.yml` and idempotent entrypoint scripts.
-
 ### Design choices
 
 **Virtual Machines vs Docker.** A VM virtualizes hardware through a
 hypervisor; Docker's `dockerd` daemon runs containers directly on the
-host's kernel, so they start and stop in about a second instead of
-minutes. Each service here builds from a minimal Alpine image, so it
-reproduces identically on any machine that can run Docker. Containers are
+host's kernel, so they are lightweight to start and stop. Each service
+here builds from a minimal Alpine image, so it reproduces identically on
+any machine that can run Docker. Containers are
 also isolated from each other — `wp_net` keeps them off the host network,
 and each is given only the secrets it needs (e.g. `wp_admin_password`
 never reaches `nginx_container`).
@@ -44,8 +39,8 @@ never reaches `nginx_container`).
 — passwords, the TLS key — go through Docker secrets, mounted read-only at
 `/run/secrets/` only into the containers that declare them. Values that
 are just identifiers (usernames, hostnames, the domain) go through
-`.env`, since knowing them alone grants no access. Neither `secrets/` nor
-`.env` is committed to git.
+`.env`, since knowing them alone grants no access. However, neither
+`secrets/` nor `.env` is committed to git.
 
 **Docker Network vs Host Network.** All three containers share one named
 bridge network, `wp_net`, where each reaches the others by container name
@@ -147,7 +142,7 @@ over the internal `wp_net` network; there is no exposed database port.
     └── requirements/
         ├── mariadb/    (Dockerfile, entrypoint.sh, conf/custom.cnf)
         ├── nginx/      (Dockerfile, conf/nginx.conf)
-        └── wordpress/  (Dockerfile, entrypoint.sh, conf/.user.ini)
+        └── wordpress/  (Dockerfile, entrypoint.sh, conf/99-custom.ini)
 ```
 
 ### Notes on the design
