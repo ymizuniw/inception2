@@ -1,6 +1,6 @@
 #!/bin/bash
-
-cd secrets/ || exit
+mkdir secrets/
+cd secrets
 
 sudo apt update && sudo apt install openssl
 # 2048 bit private key
