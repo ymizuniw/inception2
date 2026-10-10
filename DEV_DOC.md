@@ -107,14 +107,16 @@ network too, so the `wordpress` container can reach it over `wp_net`.
 ```ini
 [www]
 listen = 9000
-; user =
-; group =
+user = www-data
+group = www-data
 ```
 
 PHP-FPM pool override (copied to `/etc/php84/php-fpm.d/zz-custom.conf`; the
 `zz-` prefix makes it load after `www.conf`). `listen = 9000` binds on all
-interfaces so `nginx` can reach it over `wp_net`. `user`/`group` are left
-commented out (PHP-FPM comments use `;`, not `//`).
+interfaces so `nginx` can reach it over `wp_net`. Workers run as `www-data`
+(UID/GID 82, created in the Dockerfile); `entrypoint.sh` `chown`s the web root
+to it on every start. The UID/GID is fixed on purpose so a future FTP container
+can write as the same user. (PHP-FPM comments use `;`, not `//`.)
 
 ### `srcs/requirements/nginx/conf/nginx.conf`
 

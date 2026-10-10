@@ -18,6 +18,9 @@ RUN apk add --no-cache \
 		php84-gd \
     && sed -i 's/listen = 127.0.0.1:9000/listen = 0.0.0.0:9000/' /etc/php84/php-fpm.d/www.conf
 
+RUN addgroup -g 82 -S www-data \
+    && adduser -u 82 -S -D -G www-data -H www-data
+
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY conf/99-custom.ini /etc/php84/conf.d/99-custom.ini
 COPY conf/zz-custom.conf /etc/php84/php-fpm.d/zz-custom.conf

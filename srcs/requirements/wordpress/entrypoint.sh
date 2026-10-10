@@ -97,6 +97,13 @@ install_wordpress(){
     echo "wp installation succeeded!"
 }
 
+fix_ownership(){
+    if ! chown -R www-data:www-data "${WP_FILE_PATH}"; then
+        echo "[FAIL] chown -R www-data:www-data ${WP_FILE_PATH}" >&2
+        exit 1
+    fi
+}
+
 main(){
     read_env
     validate_admin_credentials
@@ -104,6 +111,7 @@ main(){
     if ! wp core is-installed --path="${WP_FILE_PATH}" >/dev/null 2>&1; then
         install_wordpress
     fi
+    fix_ownership
     echo "Starting PHP-FPM"
     exec php-fpm84 -F
 }
