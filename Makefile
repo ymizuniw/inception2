@@ -13,8 +13,12 @@ down:
 
 re:
 	mkdir -p $(DATA_PATH)/db-data $(DATA_PATH)/html
+	$(COMPOSE) down
 	$(COMPOSE) build --no-cache
 	$(COMPOSE) up -d
+
+fclean:
+	rm -fr $(DATA_PATH)/db-data $(DATA_PATH)/html
 
 logs:
 	$(COMPOSE) logs -f
