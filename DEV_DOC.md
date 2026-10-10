@@ -6,89 +6,56 @@ use the running site.
 
 ## 1. Prerequisites
 
-- **Docker Engine + Docker Compose v2** (`docker compose version`). Not
-  preinstalled on a stock Debian/Ubuntu VM — install it from Docker's own
-  apt repository, not the distro's `docker.io` package
-  ([official docs](https://docs.docker.com/engine/install/debian/)):
-  ```sh
-  # Docker's GPG key + apt repo
-  sudo apt update
-  sudo apt install ca-certificates curl gnupg
-  sudo install -m 0755 -d /etc/apt/keyrings
-  sudo curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc
-  sudo chmod a+r /etc/apt/keyrings/docker.asc
+### Docker
 
-  sudo tee /etc/apt/sources.list.d/docker.sources <<EOF
-  Types: deb
-  URIs: https://download.docker.com/linux/debian
-  Suites: $(. /etc/os-release && echo "$VERSION_CODENAME")
-  Components: stable
-  Architectures: $(dpkg --print-architecture)
-  Signed-By: /etc/apt/keyrings/docker.asc
-  EOF
-  sudo apt update
+1. Install **Docker Engine + Docker Compose v2**, and confirm that Docker
+   is installed:
 
-  # Install + verify
-  sudo apt install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  sudo systemctl enable --now docker
-  sudo docker run hello-world
-  ```
-- setting docker without sudo
-  ```
-  sudo groupadd docker
-  sudo usermod -aG docker $USER
-  newgrp docker
-  docker run hello-world
-  ```
+   ```sh
+   docker compose version
+   ```
 
-- `openssl` (to generate the TLS certificate via `tools/gen_cert.sh`).
-- A domain resolving to `127.0.0.1` on the host, per the 42 subject:
-  ```sh
-  echo "127.0.0.1 ymizuniw.42.fr" | sudo tee -a /etc/hosts
-  ```
-- `srcs/.env` and `secrets/` present at the repository root (both
-  git-ignored — create them yourself on a fresh clone; not covered here).
-- The two host directories `.env`'s `DATA_PATH` points at
-  (`${DATA_PATH}/db-data`, `${DATA_PATH}/html`) must exist *before* the
-  first `up` — the named volumes below are bind-backed to a fixed host
-  path, so unlike a plain bind mount Docker won't create it for you.
-  `make up`/`make re` already do this (`mkdir -p`), so it's automatic as
-  long as you go through the Makefile.'
+2. Execute `docker_init.sh`:
 
-- here is the template of `.env`
-  ```
-  DOMAIN_NAME=
-  DATA_PATH=
-  SECRET_PATH=
-  DATABASE_NAME=
-  DATABASE_USER=
-  DATABASE_HOST=
+   ```sh
+   chmod +x tools/docker_init.sh
+   ./tools/docker_init.sh
+   ```
 
-  WP_FILE_PATH=
-  WP_DATABASE_PATH=
+### Secret setup
 
-  WP_SITE_TITLE=
-  WP_ADMIN_USER=
-  WP_ADMIN_EMAIL=
-  WP_USER=
-  WP_USER_EMAIL=
-  WP_LOCALE=
-  ```
+1. Create the secret data placeholders. This also calls the openssl API to
+   generate the cert for SSL.
 
-- secrets/server.*
-  ```
-  # at inception2/
-  mkdir secrets/
-  chmod +x tools/gen_cert.sh
-  ./tools/gen_cert.sh
-  ```
-- secrets/passwords
-  ```
-  database_root_password.txt
-  database_user_password.txt
-  wp_admin_password.txt
-  wp_user_password.txt
-  ```
+   ```sh
+   chmod +x tools/configure_secrets.sh
+   ./tools/configure_secrets.sh
+   ```
+
+2. Fill in:
+
+   - `database_root_password.txt`
+   - `database_user_password.txt`
+   - `wp_admin_password.txt`
+   - `wp_user_password.txt`
+
+3. Set `127.0.0.1 ymizuniw.42.fr` in `/etc/hosts` to resolve the domain to
+   `127.0.0.1`:
+
+   ```sh
+   echo "127.0.0.1 ymizuniw.42.fr" | sudo tee -a /etc/hosts
+   ```
+
+### Env setup
+
+1. Copy the template:
+
+   ```sh
+   cp src/.env.template src/.env
+   ```
+
+2. Edit `src/.env` for your configuration.
+
 ## 2. Config files, per service
 
 ### `srcs/requirements/mariadb/conf/custom.cnf`
@@ -111,12 +78,9 @@ user = www-data
 group = www-data
 ```
 
-PHP-FPM pool override (copied to `/etc/php84/php-fpm.d/zz-custom.conf`; the
-`zz-` prefix makes it load after `www.conf`). `listen = 9000` binds on all
-interfaces so `nginx` can reach it over `wp_net`. Workers run as `www-data`
-(UID/GID 82, created in the Dockerfile); `entrypoint.sh` `chown`s the web root
-to it on every start. The UID/GID is fixed on purpose so a future FTP container
-can write as the same user. (PHP-FPM comments use `;`, not `//`.)
+PHP-FPM pool override (copied to `/etc/php84/php-fpm.d/zz-custom.conf`).
+`listen = 9000` binds on all interfaces so `nginx` can reach it over
+`wp_net`. php-fpm runs as the `www-data` user and group.
 
 ### `srcs/requirements/nginx/conf/nginx.conf`
 
@@ -124,7 +88,6 @@ The whole nginx config: one `server` block, TLS-only.
 
 - `listen 443 ssl;` + `ssl_protocols TLSv1.2 TLSv1.3;` with
   `ssl_certificate`/`ssl_certificate_key` pointing at the mounted secrets
-  — no plaintext listener.
 - `root /var/www/html/;` + `index index.php;` — the `index` line matters:
   without it, a bare `/` request matches the directory itself and nginx
   returns `403` before ever reaching the `try_files` fallback.
@@ -132,33 +95,6 @@ The whole nginx config: one `server` block, TLS-only.
   static files directly, hands everything else to WordPress).
 - `location ~ \.php$` — proxies to `wordpress_container:9000` over
   FastCGI (`upstream wp_fastcgi_passes`).
-
-### `tools/gen_cert.sh` (generates nginx's TLS material)
-
-Run on the host (the VM), not inside any container — it just needs
-`openssl`, and its output has to exist in `secrets/` before `nginx` is
-even built.
-
-```sh
-openssl genrsa -out server.key 2048
-openssl req -new -key server.key -out server.csr
-openssl x509 -req -days 3650 -signkey server.key -in server.csr -out server.crt
-```
-
-Three steps, each consuming the previous one's output:
-
-1. `genrsa` — generates a 2048-bit RSA private key, `server.key`.
-2. `req -new` — creates a Certificate Signing Request (`server.csr`) from
-   that key, prompting for the certificate's subject fields (the `CN`
-   should match `DOMAIN_NAME`).
-3. `x509 -req -signkey ... -in server.csr` — instead of sending the CSR to
-   a real CA, self-signs it with the same private key, producing
-   `server.crt` (valid for 3650 days).
-
-The result — `server.key`/`server.crt` (plus the intermediate `server.csr`,
-kept only for reference) — lands in `secrets/` and is mounted into
-`nginx_container` as the `nginx_ssl_key`/`nginx_ssl_crt`/`nginx_ssl_csr`
-secrets (see `nginx.conf`'s `ssl_certificate`/`ssl_certificate_key`).
 
 ### `srcs/requirements/wordpress/conf/.user.ini`
 
@@ -184,42 +120,11 @@ These wrap `docker compose -p inception -f srcs/docker-compose.yml <cmd>`.
 ## 4. Useful `docker` commands
 
 ```sh
-# rebuild + restart one service after editing its Dockerfile/entrypoint/conf
-docker compose -p inception -f srcs/docker-compose.yml up -d --build <service>
-
-# status of all three containers
-docker compose -p inception -f srcs/docker-compose.yml ps
-
-# validate the compose file without starting anything
-docker compose -p inception -f srcs/docker-compose.yml config -q
-
-# tail one container's logs
-docker compose -p inception -f srcs/docker-compose.yml logs -f <service>
-
-# shell into a container / run a one-off command
-docker exec -it wordpress_container sh
-docker exec wordpress_container wp option get siteurl --path=/var/www/html
+docker exec -it container_name
+docker logs container_name
 ```
 
-## 5. Confirm a restart doesn't alter data
-
-Both volumes are Docker named volumes (declared under `volumes:` and
-referenced by name in each service — see `README.md`'s "Docker Volumes vs
-Bind Mounts" note for why they're backed by a fixed host path via
-`driver_opts` rather than a plain bind mount), so a restart should leave
-everything exactly as it was:
-
-```sh
-docker exec wordpress_container wp post list --path=/var/www/html --field=ID  # note the output
-
-make down
-make up
-
-docker exec wordpress_container wp post list --path=/var/www/html --field=ID  # same output
-```
-
-If the second list matches the first, WordPress's content survived the
-restart untouched. The same check works for the database directly:
+## 5. Confirm that the database doesn't lose its contents
 
 ```sh
 docker exec mariadb_container mariadb -u root -e "SHOW TABLES;" wordpress
