@@ -13,6 +13,24 @@ read_env(){
     WP_URL="https://${DOMAIN_NAME}"
 }
 
+contains_admin(){
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | grep -q admin
+}
+
+validate_admin_credentials(){
+    local admin_password
+    admin_password="$(cat /run/secrets/wp_admin_password)"
+    : "${admin_password:?wp_admin_password is empty}"
+    if contains_admin "${WP_ADMIN_USER}"; then
+        echo "[FAIL] WP_ADMIN_USER must not contain 'admin' (case-insensitive)" >&2
+        exit 1
+    fi
+    if contains_admin "${admin_password}"; then
+        echo "[FAIL] wp_admin_password must not contain 'admin' (case-insensitive)" >&2
+        exit 1
+    fi
+}
+
 wait_for_db(){
     for i in {30..0}; do
         if [ "$i" -eq 0 ]; then
@@ -81,6 +99,7 @@ install_wordpress(){
 
 main(){
     read_env
+    validate_admin_credentials
     wait_for_db
     if ! wp core is-installed --path="${WP_FILE_PATH}" >/dev/null 2>&1; then
         install_wordpress

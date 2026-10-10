@@ -41,7 +41,7 @@ use the running site.
   docker run hello-world
   ```
 
-- `openssl` (to generate the TLS certificate via `gen_cert.sh`).
+- `openssl` (to generate the TLS certificate via `tools/gen_cert.sh`).
 - A domain resolving to `127.0.0.1` on the host, per the 42 subject:
   ```sh
   echo "127.0.0.1 ymizuniw.42.fr" | sudo tee -a /etc/hosts
@@ -79,8 +79,8 @@ use the running site.
   ```
   # at inception2/
   mkdir secrets/
-  chmod +x gen_cert.sh
-  ./gen_cert.sh
+  chmod +x tools/gen_cert.sh
+  ./tools/gen_cert.sh
   ```
 - secrets/passwords
   ```
@@ -102,6 +102,20 @@ Alpine's default MariaDB config only listens on the local Unix socket.
 This file (copied to `/etc/my.cnf.d/99-custom.cnf`) makes it listen on the
 network too, so the `wordpress` container can reach it over `wp_net`.
 
+### `srcs/requirements/wordpress/conf/zz-custom.conf`
+
+```ini
+[www]
+listen = 9000
+; user =
+; group =
+```
+
+PHP-FPM pool override (copied to `/etc/php84/php-fpm.d/zz-custom.conf`; the
+`zz-` prefix makes it load after `www.conf`). `listen = 9000` binds on all
+interfaces so `nginx` can reach it over `wp_net`. `user`/`group` are left
+commented out (PHP-FPM comments use `;`, not `//`).
+
 ### `srcs/requirements/nginx/conf/nginx.conf`
 
 The whole nginx config: one `server` block, TLS-only.
@@ -117,7 +131,7 @@ The whole nginx config: one `server` block, TLS-only.
 - `location ~ \.php$` — proxies to `wordpress_container:9000` over
   FastCGI (`upstream wp_fastcgi_passes`).
 
-### `gen_cert.sh` (generates nginx's TLS material)
+### `tools/gen_cert.sh` (generates nginx's TLS material)
 
 Run on the host (the VM), not inside any container — it just needs
 `openssl`, and its output has to exist in `secrets/` before `nginx` is

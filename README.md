@@ -105,14 +105,15 @@ over the internal `wp_net` network; there is no exposed database port.
 1. **Secrets.** Create `secrets/` at the repository root with one file per
    secret (root DB password, WordPress DB user password, WP admin
    password, WP second-user password, and the TLS key/cert/csr).
-   `gen_cert.sh` generates the certificate:
+   `tools/gen_cert.sh` generates the certificate (`tools/configure_secrets.sh`
+   runs it and also creates the empty password files):
    ```sh
-   ./gen_cert.sh
+   ./tools/configure_secrets.sh
    ```
    The other password files are plain text files containing a single line —
    create them by hand, e.g. `echo "a_strong_password" > secrets/wp_admin_password.txt`.
 
-2. **Environment.** Copy/edit `srcs/.env` with the project's configuration
+2. **Environment.** Copy `srcs/.env.template` to `srcs/.env` and edit it with the project's configuration
    (domain name, data path, database name/user, WordPress admin username,
    etc.). Neither `srcs/.env` nor `secrets/` are tracked by git
    (see `.gitignore`).
@@ -134,15 +135,20 @@ over the internal `wp_net` network; there is no exposed database port.
 ```
 .
 ├── Makefile
-├── gen_cert.sh
+├── README.md / USER_DOC.md / DEV_DOC.md
 ├── secrets/                     # git-ignored: passwords + TLS material
+├── tools/
+│   ├── configure_secrets.sh     # runs gen_cert.sh, creates empty password files
+│   ├── gen_cert.sh              # generates the self-signed TLS certificate
+│   └── docker_init.sh           # installs Docker Engine on Debian
 └── srcs/
-    ├── .env                     # git-ignored: per-deployment configuration
+    ├── .env.template            # copy to .env (git-ignored) and fill in
     ├── docker-compose.yml
     └── requirements/
         ├── mariadb/    (Dockerfile, entrypoint.sh, conf/custom.cnf)
         ├── nginx/      (Dockerfile, conf/nginx.conf)
-        └── wordpress/  (Dockerfile, entrypoint.sh, conf/99-custom.ini)
+        └── wordpress/  (Dockerfile, entrypoint.sh,
+                         conf/99-custom.ini, conf/zz-custom.conf)
 ```
 
 ### Notes on the design
